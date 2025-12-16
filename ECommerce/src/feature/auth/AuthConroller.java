@@ -1,7 +1,5 @@
 package feature.auth;
 
-import java.util.List;
-
 import repostiory.dto.User;
 
 public class AuthConroller {
@@ -16,17 +14,19 @@ public class AuthConroller {
 		// TODO Auto-generated method stub
 		return model.checkEmailAlreadyExist(email);
 	}
-	public void addUser(String name, String mobile, String email, String password, List<String> addresses) {
-		User user = new User(0, password, name, mobile, email, addresses);
-		model.addUser(user);
-		view.showMessage("User Register successfully..");
+	public void addUser(String name, String mobile, String email, String password, String address) {
+		User user = new User(name, mobile, email, password, address);
+		if(model.addUser(user))
+			view.showMessage("User Register successfully..");
+		else
+			view.showMessage("Error on registeration..Please check your details..");
 	}
 	public void login(String email, String password) {
-		User user = model.login(email, password);
-		if(user==null)
+		int userId = model.login(email, password);
+		if(userId==0)
 			view.showMessage("User doesn't exist");
 		else
-			view.homeView(user);
+			view.homeView(userId);
 	}
 
 }

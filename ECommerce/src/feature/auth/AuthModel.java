@@ -12,27 +12,13 @@ public class AuthModel {
 		controller = authConroller;
 	}
 	public boolean checkEmailAlreadyExist(String email) {
-		Map<Integer, User> users = CommerceDb.getInstance().getUsers();
-		
-		for (Map.Entry<Integer, User> entry : users.entrySet()) {
-			User user = entry.getValue();
-			if(user.getEmail().equals(email)) 
-				return true;
-		}
-		return false;
+		return CommerceDb.getInstance().checkEmailAlreadyExist(email);
 	}
-	public void addUser(User user) {
-		CommerceDb.getInstance().addUser(user);
+	public boolean addUser(User user) {
+		return CommerceDb.getInstance().addUser(user);
 	}
-	public User login(String email, String password) {
-		Map<Integer, User> users = CommerceDb.getInstance().getUsers();
-		for (Map.Entry<Integer, User> entry : users.entrySet()) {
-			User user = entry.getValue();
-			if(user.getEmail().equals(email) && user.getPassword().equals(password)) 
-				return user;
-		}
-		
-		return null;
+	public int login(String email, String password) {
+		return CommerceDb.getInstance().login(email, password);
 	}
 	
 }

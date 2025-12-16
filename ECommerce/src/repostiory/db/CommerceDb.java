@@ -33,14 +33,12 @@ public class CommerceDb {
 		return users;
 	}
 
-	public void addUser( User user) {
-		user.setUserId(userId);
-		users.put(userId, user);
-		userId++;
+	public boolean addUser( User user) {
+		return new CommerceDao().addNewUser(user);
 	}
 
-	public Map<Integer, Product> getProducts() {
-		return products;
+	public List<Product> getProducts() {
+		return new CommerceDao().getAllProducts();
 	}
 
 	public void addProducts(Product product) {
@@ -55,6 +53,27 @@ public class CommerceDb {
 
 	public void addOrder(Order order) {
 		this.orders.add(order);
+	}
+
+	public boolean checkEmailAlreadyExist(String email) {
+		return new CommerceDao().checkEmailAlreadyExist(email);
+	}
+
+	public int login(String email, String password) {
+		return new CommerceDao().login(email, password);
+	}
+
+	public boolean isProductAvailable(int proId, int quantity) {
+		return new CommerceDao().isProductAvailable(proId, quantity);
+	}
+
+	public Product getProductById(int proId) {
+		
+		return new CommerceDao().getProductById(proId);
+	}
+
+	public boolean placeTheOrder(int proId, int quantity, int paymentType, int userId) {
+		return new CommerceDao().placeTheOrder(proId, quantity, paymentType, userId);
 	}
 	
 }

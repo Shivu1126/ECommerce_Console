@@ -54,9 +54,9 @@ public class AuthView extends BaseView{
 		String password = getScanner().nextLine();
 		System.out.println("Enter address");
 		String address = getScanner().nextLine();
-		List<String> addresses = new ArrayList<>();
-		addresses.add(address);
-		controller.addUser(name, mobile, email, password, addresses);
+//		List<String> addresses = new ArrayList<>();
+//		addresses.add(address);
+		controller.addUser(name, mobile, email, password, address);
 	}
 	private void login() {
 		System.out.println("Enter email id");
@@ -68,7 +68,8 @@ public class AuthView extends BaseView{
 	public void showMessage(String message) {
 		System.out.println(message);
 	}
-	public void homeView(User user) {
-		new HomeView(user).homeView();
+	public void homeView(int userId) {
+//		System.out.println("Log: "+userId);
+		new HomeView(userId).homeView();
 	}
 }

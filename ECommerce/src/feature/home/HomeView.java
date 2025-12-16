@@ -11,8 +11,8 @@ import repostiory.dto.User;
 
 public class HomeView extends BaseView{
 	private HomeController controller;
-	public HomeView(User user) {
-		this.controller = new HomeController(this, user);
+	public HomeView(int userId) {
+		this.controller = new HomeController(this, userId);
 	}
 	
 	public void homeView() {
@@ -20,7 +20,7 @@ public class HomeView extends BaseView{
 			System.out.println("1. View All products");
 			System.out.println("2. Add To Cart");
 			System.out.println("3. Place Order");
-			System.out.println("4. History Order");
+			System.out.println("4. Order History");
 			System.out.println("5. Show Carts");
 			System.out.println("6. Logout");
 			try {
@@ -43,7 +43,7 @@ public class HomeView extends BaseView{
 						break;
 					case 6:
 						System.out.println("Logout successfully");
-						break;
+						return;
 					default:
 						System.out.println("Enter proper input");
 				}
@@ -63,11 +63,11 @@ public class HomeView extends BaseView{
 				System.out.println("----------------------------------");
 				System.out.println("Cart id: "+cart.getCartId() +"\t"+ "Ordered : "+ (cart.isOrdered()?"Yes":"No"));
 				System.out.println("----------------------------------");
-				System.out.println("ProductId\tProductName\tPrice\tType\tManfactureDate\tExpireyDate\tdiscount%\tsellingPrice");
+				System.out.println("ProductId\tProductName\tPrice\tCategory\tDescription\tStock");
 				for(CartEntry cartEntry : cart.getCartEntries()) {
 					Product pro = cartEntry.getProduct();
-					System.out.println(pro.getProId()+"\t"+pro.getProductName()+"\t"+pro.getPrice()+"\t"+pro.getType()+
-							""+pro.getManufDate()+"\t"+pro.getExpDate()+"\t"+pro.getDiscount());
+					System.out.println(pro.getProId()+"\t"+pro.getProductName()+"\t"+pro.getPrice()+"\t"+pro.getCategory()+
+							"\t"+pro.getDescription()+"\t"+pro.getStockCount());
 				}	
 				System.out.println("---------------------------------------------------------------------");
 			}
@@ -75,42 +75,62 @@ public class HomeView extends BaseView{
 	}
 
 	private void placeOrder() {
-		System.out.println("1. New order");
-		System.out.println("2. From Cart");
-		int option = Integer.parseInt(getScanner().nextLine());
-		if(option==1) {
-			List<CartEntry> carts = new ArrayList<>();
-			System.out.println("Enter product id");
-			int proId = Integer.parseInt(getScanner().nextLine());
-			System.out.println("Enter quantity");
-			int quantity = Integer.parseInt(getScanner().nextLine());
-			if(quantity<=0 && controller.checkProId(proId, quantity)) {
-				System.out.println("Product doesnt exist");
+		while(true) {
+			System.out.println("1. New order");
+			System.out.println("2. From Cart");
+			System.out.println("3. Back");
+			int option = Integer.parseInt(getScanner().nextLine());
+			switch(option) {
+				case 1:
+					newOrder();
+					break;
+				case 2:
+					break;
+				case 3:
+					return;
+				default:
+					System.out.println("Enter proper input");
 			}
-			else {
-				Product product = controller.getProductById(proId);
-				CartEntry cartEntry = new CartEntry(product, quantity, quantity*product.getPrice(), System.currentTimeMillis());
-				carts.add(cartEntry);
-				int cartId = controller.addNewCart(carts);
-//				paymentMethod(cartId);
-				controller.placeOrder(cartId);
-			}
-		}
-		else if(option==2) {
-			System.out.println("Enter Cart Id");
-			int cartId = Integer.parseInt(getScanner().nextLine());
-			if(controller.checkCartId(cartId)==null)
-				System.out.println("Enter proper id");
-			else
-				controller.placeOrder(cartId);
-		}
-		else {
-			System.out.println("Enter proper input...");
 		}
 	}
 
-	private void paymentMethod(int cartId) {
-		
+	private void newOrder() {
+		System.out.println("Enter product id");
+		int proId = Integer.parseInt(getScanner().nextLine());
+		System.out.println("Enter quantity");
+		int quantity = Integer.parseInt(getScanner().nextLine());
+		boolean isProductNotAvailable = controller.isProductAvailable(proId, quantity);
+		if(quantity<=0) {
+			System.out.println("Enter proper quantity");
+		}
+		else if(!isProductNotAvailable) {
+			System.out.println("Product doesnt exist");
+		}
+		else {
+			System.out.println(proId+" "+quantity);
+			boolean isValid = controller.getProductDetail(proId, quantity);
+			if(!isValid) {
+				return;
+			}
+			while(true) {
+				System.out.println("Select the payment method");
+				System.out.println("1. Cash On Delivary");
+				System.out.println("2. Online payment");
+				System.out.println("3. Cancel");
+				int option = Integer.parseInt(getScanner().nextLine());
+				if(option==3) {
+					System.out.println("Thank you..");
+					return;
+				}
+				else if(option == 1 || option == 2){
+					controller.placeTheOrder(proId, quantity, option);
+					break;
+				}
+				else {
+					System.out.println("Enter proper input");
+				}
+			}
+		}
 	}
 
 	private void addToCart() {
@@ -151,7 +171,7 @@ public class HomeView extends BaseView{
 			int proId = Integer.parseInt(getScanner().nextLine());
 			System.out.println("Enter quantity");
 			int quantity = Integer.parseInt(getScanner().nextLine());
-			if(quantity<=0 && controller.checkProId(proId, quantity)) {
+			if(quantity<=0 && controller.isProductAvailable(proId, quantity)) {
 				System.out.println("Product doesnt exist");
 			}
 			else {
@@ -170,7 +190,7 @@ public class HomeView extends BaseView{
 			int proId = Integer.parseInt(getScanner().nextLine());
 			System.out.println("Enter quantity");
 			int quantity = Integer.parseInt(getScanner().nextLine());
-			if(quantity<=0 && controller.checkProId(proId, quantity)) {
+			if(quantity<=0 && controller.isProductAvailable(proId, quantity)) {
 				System.out.println("Product doesnt exist");
 				continue;
 			}
@@ -189,17 +209,34 @@ public class HomeView extends BaseView{
 			System.out.println("No product added yet...");
 		else {
 			System.out.println("-----------------------------------------------------------------------------");
-			System.out.println("ProductId\tProductName\tPrice\tType\tManfactureDate\tExpireyDate\tdiscount%\tsellingPrice");
+			System.out.println("ProductId\tProductName\tPrice\tCategory\tDescription\tStock");
 			System.out.println("-----------------------------------------------------------------------------");
 			for(Product pro : allProduct) {
-				System.out.println(pro.getProId()+"\t"+pro.getProductName()+"\t"+pro.getPrice()+"\t"+pro.getType()+
-				""+pro.getManufDate()+"\t"+pro.getExpDate()+"\t"+pro.getDiscount());
-//				+"\t"+(pro.getPrice()-(pro.getPrice()/pro.getDiscount())));
+				System.out.println(pro.getProId()+"\t"+pro.getProductName()+"\t"+pro.getPrice()+"\t"+pro.getCategory()+
+						"\t"+pro.getDescription()+"\t"+pro.getStockCount());
 			}
 			System.out.println("-----------------------------------------------------------------------------");
 		}
 	}
 	public void showMessage(String message) {
 		System.out.println(message);
+	}
+
+	public void showPurchasingProductDetail(Product product, int quantity) {
+		if(product==null) {
+			System.out.println("Invalid product id..!!");
+		}
+		else {
+			double totalPrice = quantity * product.getPrice();
+			System.out.println("--------------------------");
+			System.out.println("Order Details");
+			System.out.println("--------------------------");
+			System.out.println("ProductId : "+product.getProId()+"\tProductName : "+product.getProductName()+
+					"\nPrice : "+product.getPrice()+"\tCategory : "+product.getCategory()
+					+"\nDescription : "+product.getDescription()+"");
+			System.out.println("--------------------------");
+			System.out.println("TOTAL PRICE : "+totalPrice);
+			System.out.println("--------------------------");
+		}
 	}
 }
